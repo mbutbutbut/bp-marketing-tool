@@ -74,7 +74,8 @@ Log those here manually after each full review:
 
 | Date | Nielsen /40 | Overlay dimensions passing (/5) | Notes |
 |---|---|---|---|
-| 2026-09-13 | 27/40 | 5/5 (all fixed and verified) | Mobile header regression found and fixed; Card/Button extracted; canvas logic deduped |
+| 2026-09-13 (run 2) | 27/40 | 4/5 — Silent-failure elimination not yet isolated as its own tracked line; background-image case fixed, but `loadGoogleFont`'s missing failure handling was already present and unflagged at this point. Corrected below once this doc's 5-dimension list existed to check against. | Mobile header regression found and fixed; Card/Button extracted; canvas logic deduped |
+| 2026-09-13 (run 3) | 29/40 | 4/5 — WYSIWYG trust, Guardrail precision, Authoring leverage: pass. Proportionality: partial (dead space in the canvas editor container, not yet fixed). **Silent-failure elimination: fail** — `loadGoogleFont` in `src/lib/google-fonts.ts` still has no `onerror`/`onload`; a failed font request degrades silently with no retry path. This is the same gap as run 2, now correctly named against this doc's rubric instead of missed. | Ran with 7 realistic templates (not 1) to properly evaluate the nav-structure question — recommended against a persistent left-sidebar template list; the real fix is thumbnails on template cards (still open, P2). Grid layout at 7 items found to leave an orphaned card + dead space (3+3+1 at both 1440 and 768). |
 
 ## How to run this
 
