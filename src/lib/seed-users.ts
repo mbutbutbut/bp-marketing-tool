@@ -2,11 +2,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export async function seedUsers() {
-  const ownerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@boulderparc.com";
-  const ownerPassword = process.env.SEED_OWNER_PASSWORD ?? "change-me-owner";
-  const editorEmail = process.env.SEED_EDITOR_EMAIL ?? "editor@boulderparc.com";
+  const ownerEmail = process.env.SEED_OWNER_EMAIL || "owner@boulderparc.com";
+  const ownerPassword = process.env.SEED_OWNER_PASSWORD || "change-me-owner";
+  const editorEmail = process.env.SEED_EDITOR_EMAIL || "editor@boulderparc.com";
   const editorPassword =
-    process.env.SEED_EDITOR_PASSWORD ?? "change-me-editor";
+    process.env.SEED_EDITOR_PASSWORD || "change-me-editor";
+
+  // Clean up any user created by an earlier bug where empty env vars
+  // (rather than missing ones) bypassed the fallback defaults above.
+  await prisma.user.deleteMany({ where: { email: "" } });
 
   await prisma.user.upsert({
     where: { email: ownerEmail },
