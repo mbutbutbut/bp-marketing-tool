@@ -106,23 +106,27 @@ export default function TemplateEditor({
 
     async function setup() {
       if (data.backgroundImageUrl) {
-        const img = await fabric.FabricImage.fromURL(
-          data.backgroundImageUrl!,
-          { crossOrigin: "anonymous" },
-        );
-        if (disposed) return;
-        img.set({
-          left: 0,
-          top: 0,
-          originX: "left",
-          originY: "top",
-          scaleX: (data.width * scale) / (img.width ?? data.width),
-          scaleY: (data.height * scale) / (img.height ?? data.height),
-          selectable: false,
-          evented: false,
-        });
-        canvas.add(img);
-        canvas.sendObjectToBack(img);
+        try {
+          const img = await fabric.FabricImage.fromURL(data.backgroundImageUrl);
+          if (disposed) return;
+          img.set({
+            left: 0,
+            top: 0,
+            originX: "left",
+            originY: "top",
+            scaleX: (data.width * scale) / (img.width ?? data.width),
+            scaleY: (data.height * scale) / (img.height ?? data.height),
+            selectable: false,
+            evented: false,
+          });
+          canvas.add(img);
+          canvas.sendObjectToBack(img);
+          canvas.requestRenderAll();
+        } catch (err) {
+          // Don't let a failed background image load block the text
+          // fields from rendering — fall back to the flat backgroundColor.
+          console.error("Failed to load template background image", err);
+        }
       }
 
       for (const field of data.fields) {
