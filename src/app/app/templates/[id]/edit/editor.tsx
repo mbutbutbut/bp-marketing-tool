@@ -59,6 +59,7 @@ export default function TemplateEditor({
   templateName,
   variantId,
   variantLabel,
+  dpi,
   canvasJson,
   editableFieldKeys,
 }: {
@@ -66,6 +67,7 @@ export default function TemplateEditor({
   templateName: string;
   variantId: string;
   variantLabel: string;
+  dpi: number;
   canvasJson: unknown;
   editableFieldKeys: string[];
 }) {
@@ -76,6 +78,8 @@ export default function TemplateEditor({
   const [inspector, setInspector] = useState<InspectorState | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const data = canvasJson as CanvasJson;
   const editableSet = new Set(editableFieldKeys);
@@ -109,7 +113,10 @@ export default function TemplateEditor({
     async function setup() {
       if (data.backgroundImageUrl) {
         try {
-          const img = await fabric.FabricImage.fromURL(data.backgroundImageUrl);
+          const proxiedUrl = `/api/figma-image?url=${encodeURIComponent(
+            data.backgroundImageUrl,
+          )}`;
+          const img = await fabric.FabricImage.fromURL(proxiedUrl);
           if (disposed) return;
           img.set({
             left: 0,
@@ -269,6 +276,75 @@ export default function TemplateEditor({
     if (res.ok) setSaved(true);
   }
 
+  function triggerDownload(href: string, filename: string) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function safeName() {
+    return `${templateName}-${variantLabel}`.replace(/[^a-z0-9]+/gi, "-");
+  }
+
+  function exportImage(format: "png" | "jpeg") {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    try {
+      const dataUrl = canvas.toDataURL({
+        format,
+        quality: format === "jpeg" ? 0.92 : 1,
+        multiplier: 1 / scale,
+      });
+      triggerDownload(dataUrl, `${safeName()}.${format === "jpeg" ? "jpg" : "png"}`);
+      setExportError(null);
+    } catch (err) {
+      console.error(err);
+      setExportError(
+        "Couldn't export an image — the background may have failed to load safely for export.",
+      );
+    }
+  }
+
+  async function exportPdf() {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    setExporting(true);
+    setExportError(null);
+
+    try {
+      const dataUrl = canvas.toDataURL({ format: "png", multiplier: 1 / scale });
+      const res = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageDataUrl: dataUrl,
+          widthPx: data.width,
+          heightPx: data.height,
+          dpi,
+          templateId,
+          variantId,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, `${safeName()}.pdf`);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setExportError("Couldn't generate a PDF for this design.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
@@ -286,6 +362,29 @@ export default function TemplateEditor({
         </div>
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-green-600">Saved</span>}
+          <div className="flex items-center overflow-hidden rounded-md border border-zinc-300">
+            <button
+              onClick={() => exportImage("png")}
+              className="px-3 py-2 text-sm hover:bg-zinc-50"
+            >
+              PNG
+            </button>
+            <span className="h-full w-px bg-zinc-300" />
+            <button
+              onClick={() => exportImage("jpeg")}
+              className="px-3 py-2 text-sm hover:bg-zinc-50"
+            >
+              JPG
+            </button>
+            <span className="h-full w-px bg-zinc-300" />
+            <button
+              onClick={exportPdf}
+              disabled={exporting}
+              className="px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-50"
+            >
+              {exporting ? "PDF…" : "PDF"}
+            </button>
+          </div>
           <Link
             href={`/app/templates/${templateId}`}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
@@ -301,6 +400,10 @@ export default function TemplateEditor({
           </button>
         </div>
       </div>
+
+      {exportError && (
+        <p className="mb-4 -mt-2 text-sm text-red-600">{exportError}</p>
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px]">
         <div className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4">

@@ -38,6 +38,7 @@ export default async function TemplateEditPage({
       templateName={template.name}
       variantId={variant.id}
       variantLabel={variant.label}
+      dpi={variant.dpi}
       canvasJson={variant.canvasJson}
       editableFieldKeys={Array.from(editableFieldKeys)}
     />
