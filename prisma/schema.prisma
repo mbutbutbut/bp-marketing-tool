@@ -1,0 +1,147 @@
+// Prisma schema for Boulder Parc Template Studio
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  EDITOR
+}
+
+enum TemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OutputType {
+  IG_POST
+  IG_STORY
+  IG_REEL_COVER
+  FACEBOOK_POST
+  LETTER
+  ELEVEN_BY_SEVENTEEN
+  TWELVE_BY_EIGHTEEN
+  CUSTOM
+}
+
+enum FontSource {
+  GOOGLE_FONT
+  UPLOADED
+}
+
+enum RenderFormat {
+  PNG
+  JPG
+  PDF
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  passwordHash  String
+  role          Role       @default(EDITOR)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  templates     Template[] @relation("TemplateCreatedBy")
+  renders       Render[]   @relation("RenderCreatedBy")
+  fontsUploaded Font[]     @relation("FontUploadedBy")
+}
+
+model Template {
+  id              String    @id @default(cuid())
+  name            String
+  eventType       String?
+  status          TemplateStatus @default(DRAFT)
+  baseFigmaFileKey String?
+  baseFigmaNodeId  String?
+  createdBy       User      @relation("TemplateCreatedBy", fields: [createdById], references: [id])
+  createdById     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  variants        TemplateVariant[]
+  fields          TemplateField[]
+  renders         Render[]
+
+  @@index([createdById])
+}
+
+model TemplateVariant {
+  id          String     @id @default(cuid())
+  template    Template   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId  String
+  outputType  OutputType
+  label       String
+  widthPx     Int
+  heightPx    Int
+  dpi         Int        @default(72)
+  canvasJson  Json
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  fields      TemplateField[]
+  renders     Render[]
+
+  @@index([templateId])
+}
+
+model TemplateField {
+  id            String            @id @default(cuid())
+  template      Template          @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId    String
+  variant       TemplateVariant?  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId     String?
+  fieldKey      String
+  label         String
+  type          String            @default("text") // "text" | "image"
+  defaultValue  String?
+  fontFamily    String?
+  fontSize      Int?
+  maxLength     Int?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([templateId])
+  @@index([variantId])
+}
+
+model Font {
+  id           String     @id @default(cuid())
+  name         String
+  source       FontSource
+  googleFamily String?
+  fileUrl      String?
+  uploadedBy   User?      @relation("FontUploadedBy", fields: [uploadedById], references: [id])
+  uploadedById String?
+  createdAt    DateTime   @default(now())
+
+  @@index([uploadedById])
+}
+
+model Render {
+  id             String           @id @default(cuid())
+  template       Template         @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId     String
+  variant        TemplateVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId      String
+  createdBy      User             @relation("RenderCreatedBy", fields: [createdById], references: [id])
+  createdById    String
+  contentJson    Json
+  format         RenderFormat
+  exportedFileUrl String?
+  createdAt      DateTime         @default(now())
+
+  @@index([templateId])
+  @@index([variantId])
+  @@index([createdById])
+}
