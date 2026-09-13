@@ -56,12 +56,9 @@ export default function FieldList({
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-white">
       {fields.map((field) => (
-        <li
-          key={field.id}
-          className="flex items-start gap-3 rounded-md border border-zinc-200 bg-white p-3"
-        >
+        <li key={field.id} className="flex items-start gap-3 p-3">
           <input
             type="checkbox"
             checked={field.isEditable}

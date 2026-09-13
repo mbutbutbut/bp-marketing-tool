@@ -473,7 +473,7 @@ export default function TemplateEditor({
         <p className="mb-4 -mt-2 text-sm text-red-600">{exportError}</p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px]">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(280px,32%)]">
         <div>
           {backgroundLoadFailed && (
             <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">

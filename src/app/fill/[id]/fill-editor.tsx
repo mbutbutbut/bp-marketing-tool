@@ -173,6 +173,18 @@ export default function FillEditor({
           },
         );
 
+        // Clip to the field's declared box so a longer-than-expected value
+        // can't visually bleed into whatever's positioned below it.
+        text.clipPath = new fabric.Rect({
+          left: field.x * scale,
+          top: field.y * scale,
+          width: field.width * scale,
+          height: field.height * scale,
+          originX: "left",
+          originY: "top",
+          absolutePositioned: true,
+        });
+
         textObjects.set(field.fieldKey, text);
         canvas.add(mask);
         canvas.add(text);
@@ -308,7 +320,7 @@ export default function FillEditor({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(320px,34%)]">
         <div>
           {backgroundLoadFailed && (
             <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -324,35 +336,33 @@ export default function FillEditor({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <Card>
-            {variant.fields.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                This size has no editable fields.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {variant.fields.map((field) => (
-                  <div key={field.fieldKey}>
-                    <label className="mb-1 block text-xs font-medium text-zinc-700">
-                      {field.label}
-                    </label>
-                    <input
-                      type="text"
-                      value={fieldValues[field.fieldKey] ?? ""}
-                      maxLength={field.maxLength ?? undefined}
-                      onChange={(e) =>
-                        updateField(field.fieldKey, e.target.value)
-                      }
-                      className="w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+        <Card className="space-y-4 self-start">
+          {variant.fields.length === 0 ? (
+            <p className="text-sm text-zinc-500">
+              This size has no editable fields.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {variant.fields.map((field) => (
+                <div key={field.fieldKey}>
+                  <label className="mb-1 block text-xs font-medium text-zinc-700">
+                    {field.label}
+                  </label>
+                  <input
+                    type="text"
+                    value={fieldValues[field.fieldKey] ?? ""}
+                    maxLength={field.maxLength ?? undefined}
+                    onChange={(e) =>
+                      updateField(field.fieldKey, e.target.value)
+                    }
+                    className="w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
-          <Card>
+          <div className="border-t border-zinc-200 pt-4">
             <p className="mb-2 text-xs font-medium text-zinc-700">Export</p>
             <div className="flex flex-col gap-2">
               <Button variant="secondary" onClick={() => exportImage("png")}>
@@ -375,8 +385,8 @@ export default function FillEditor({
             {exportError && (
               <p className="mt-2 text-xs text-red-600">{exportError}</p>
             )}
-          </Card>
-        </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

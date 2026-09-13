@@ -62,7 +62,7 @@ export default async function TemplateDetailPage({
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900">
+          <h1 className="text-xl font-semibold text-zinc-900">
             {template.name}
           </h1>
           <p className="text-sm text-zinc-500">
@@ -133,7 +133,7 @@ export default async function TemplateDetailPage({
             </div>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-14">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-zinc-900">Sizes</h2>
               {variant && (
@@ -166,7 +166,7 @@ export default async function TemplateDetailPage({
             </ul>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-14">
             <h2 className="mb-3 text-sm font-semibold text-zinc-900">
               Recent exports
             </h2>
