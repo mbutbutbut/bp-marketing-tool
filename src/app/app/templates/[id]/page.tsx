@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import FieldList from "./field-list";
 
@@ -44,15 +45,25 @@ export default async function TemplateDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-lg font-semibold text-zinc-900">
-          {template.name}
-        </h1>
-        <p className="text-sm text-zinc-500">
-          {canvasJson
-            ? `${canvasJson.width}×${canvasJson.height}px · ${template.fields.filter((f) => f.isEditable).length} editable field${template.fields.filter((f) => f.isEditable).length === 1 ? "" : "s"}`
-            : "No size variant yet."}
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold text-zinc-900">
+            {template.name}
+          </h1>
+          <p className="text-sm text-zinc-500">
+            {canvasJson
+              ? `${canvasJson.width}×${canvasJson.height}px · ${template.fields.filter((f) => f.isEditable).length} editable field${template.fields.filter((f) => f.isEditable).length === 1 ? "" : "s"}`
+              : "No size variant yet."}
+          </p>
+        </div>
+        {canvasJson && (
+          <Link
+            href={`/app/templates/${template.id}/edit`}
+            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          >
+            Open editor
+          </Link>
+        )}
       </div>
 
       {!canvasJson ? (
@@ -97,9 +108,8 @@ export default async function TemplateDetailPage({
               }))}
             />
             <p className="mt-4 text-xs text-zinc-400">
-              This is a preview of what came in from Figma. Full editing
-              (moving/resizing fields, adjusting fonts, adding size variants)
-              is coming next.
+              Open the editor to move/resize fields, change fonts, or edit
+              the default text.
             </p>
           </div>
         </div>

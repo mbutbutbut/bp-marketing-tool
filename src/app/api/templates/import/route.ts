@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
         fontSize: f.fontSize,
         color: f.color,
         align: f.align,
+        maskColor: frame.backgroundFill ?? "#ffffff",
         defaultValue: f.characters,
       })),
     };
