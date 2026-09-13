@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import Card from "@/components/ui/card";
 
 export default async function FillPage() {
   const templates = await prisma.template.findMany({
@@ -21,21 +22,20 @@ export default async function FillPage() {
       ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {templates.map((t) => (
-            <li
-              key={t.id}
-              className="rounded-lg border border-zinc-200 bg-white p-4"
-            >
-              <p className="font-medium text-zinc-900">{t.name}</p>
-              <p className="mt-2 text-xs text-zinc-500">
-                {t.variants.length} size option
-                {t.variants.length === 1 ? "" : "s"}
-              </p>
-              <Link
-                href={`/fill/${t.id}`}
-                className="mt-3 inline-block text-sm font-medium text-zinc-900 underline"
-              >
-                Fill in content →
-              </Link>
+            <li key={t.id}>
+              <Card>
+                <p className="font-medium text-zinc-900">{t.name}</p>
+                <p className="mt-2 text-xs text-zinc-500">
+                  {t.variants.length} size option
+                  {t.variants.length === 1 ? "" : "s"}
+                </p>
+                <Link
+                  href={`/fill/${t.id}`}
+                  className="mt-3 inline-block text-sm font-medium text-zinc-900 underline"
+                >
+                  Fill in content →
+                </Link>
+              </Card>
             </li>
           ))}
         </ul>

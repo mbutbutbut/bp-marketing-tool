@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import FieldList from "./field-list";
 import AddVariantForm from "./add-variant-form";
 import PublishToggle from "./publish-toggle";
+import Card from "@/components/ui/card";
+import { buttonClasses } from "@/components/ui/button";
 
 interface CanvasJsonField {
   fieldKey: string;
@@ -74,7 +76,7 @@ export default async function TemplateDetailPage({
           {canvasJson && variant && (
             <Link
               href={`/app/templates/${template.id}/edit/${variant.id}`}
-              className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+              className={buttonClasses("primary")}
             >
               Open editor
             </Link>
@@ -143,23 +145,22 @@ export default async function TemplateDetailPage({
             </div>
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
               {template.variants.map((v) => (
-                <li
-                  key={v.id}
-                  className="rounded-lg border border-zinc-200 bg-white p-4"
-                >
-                  <p className="text-sm font-medium text-zinc-900">
-                    {v.label}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {v.widthPx}×{v.heightPx}px
-                    {v.dpi !== 72 && ` · ${v.dpi} DPI`}
-                  </p>
-                  <Link
-                    href={`/app/templates/${template.id}/edit/${v.id}`}
-                    className="mt-3 inline-block text-sm font-medium text-zinc-900 underline"
-                  >
-                    Open editor →
-                  </Link>
+                <li key={v.id}>
+                  <Card>
+                    <p className="text-sm font-medium text-zinc-900">
+                      {v.label}
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      {v.widthPx}×{v.heightPx}px
+                      {v.dpi !== 72 && ` · ${v.dpi} DPI`}
+                    </p>
+                    <Link
+                      href={`/app/templates/${template.id}/edit/${v.id}`}
+                      className="mt-3 inline-block text-sm font-medium text-zinc-900 underline"
+                    >
+                      Open editor →
+                    </Link>
+                  </Card>
                 </li>
               ))}
             </ul>

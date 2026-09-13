@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import TemplateCardActions from "./template-card-actions";
+import Card from "@/components/ui/card";
+import { buttonClasses } from "@/components/ui/button";
 import type { Prisma } from "@/generated/prisma/client";
 
 const STATUS_TABS = ["ALL", "DRAFT", "PUBLISHED", "ARCHIVED"] as const;
@@ -40,10 +42,7 @@ export default async function TemplatesPage({
     <div className="mx-auto max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-zinc-900">Templates</h1>
-        <Link
-          href="/app/templates/new"
-          className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-        >
+        <Link href="/app/templates/new" className={buttonClasses("primary")}>
           Import from Figma
         </Link>
       </div>
@@ -89,22 +88,21 @@ export default async function TemplatesPage({
       ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {templates.map((t) => (
-            <li
-              key={t.id}
-              className="rounded-lg border border-zinc-200 bg-white p-4"
-            >
-              <Link href={`/app/templates/${t.id}`} className="block">
-                <p className="font-medium text-zinc-900">{t.name}</p>
-                <p className="text-xs uppercase text-zinc-500">
-                  {t.status}
-                  {t.eventType ? ` · ${t.eventType}` : ""}
-                </p>
-                <p className="mt-2 text-xs text-zinc-500">
-                  {t.variants.length} size variant
-                  {t.variants.length === 1 ? "" : "s"}
-                </p>
-              </Link>
-              <TemplateCardActions templateId={t.id} status={t.status} />
+            <li key={t.id}>
+              <Card>
+                <Link href={`/app/templates/${t.id}`} className="block">
+                  <p className="font-medium text-zinc-900">{t.name}</p>
+                  <p className="text-xs uppercase text-zinc-500">
+                    {t.status}
+                    {t.eventType ? ` · ${t.eventType}` : ""}
+                  </p>
+                  <p className="mt-2 text-xs text-zinc-500">
+                    {t.variants.length} size variant
+                    {t.variants.length === 1 ? "" : "s"}
+                  </p>
+                </Link>
+                <TemplateCardActions templateId={t.id} status={t.status} />
+              </Card>
             </li>
           ))}
         </ul>

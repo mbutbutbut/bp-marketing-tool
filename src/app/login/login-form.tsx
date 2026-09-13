@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import Button from "@/components/ui/button";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -70,13 +71,9 @@ export default function LoginForm() {
 
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Signing in..." : "Sign in"}
-        </button>
+        </Button>
       </form>
     </div>
   );

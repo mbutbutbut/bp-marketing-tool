@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
 import { loadGoogleFont } from "@/lib/google-fonts";
 import { useContainerScale } from "@/lib/use-container-scale";
+import Card from "@/components/ui/card";
+import Button from "@/components/ui/button";
 
 interface CanvasField {
   fieldKey: string;
@@ -323,7 +325,7 @@ export default function FillEditor({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <Card>
             {variant.fields.length === 0 ? (
               <p className="text-sm text-zinc-500">
                 This size has no editable fields.
@@ -348,30 +350,24 @@ export default function FillEditor({
                 ))}
               </div>
             )}
-          </div>
+          </Card>
 
-          <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <Card>
             <p className="mb-2 text-xs font-medium text-zinc-700">Export</p>
             <div className="flex flex-col gap-2">
-              <button
-                onClick={() => exportImage("png")}
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
-              >
+              <Button variant="secondary" onClick={() => exportImage("png")}>
                 Download PNG
-              </button>
-              <button
-                onClick={() => exportImage("jpeg")}
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
-              >
+              </Button>
+              <Button variant="secondary" onClick={() => exportImage("jpeg")}>
                 Download JPG
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={exportPdf}
                 disabled={exporting === "pdf"}
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-50"
               >
                 {exporting === "pdf" ? "Generating PDF…" : "Download PDF"}
-              </button>
+              </Button>
             </div>
             {exportMessage && (
               <p className="mt-2 text-xs text-green-600">{exportMessage}</p>
@@ -379,7 +375,7 @@ export default function FillEditor({
             {exportError && (
               <p className="mt-2 text-xs text-red-600">{exportError}</p>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </div>

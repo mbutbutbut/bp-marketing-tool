@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OUTPUT_PRESETS, OUTPUT_TYPE_ORDER } from "@/lib/output-sizes";
+import Card from "@/components/ui/card";
+import Button, { buttonClasses } from "@/components/ui/button";
 
 export default function AddVariantForm({
   templateId,
@@ -54,20 +56,14 @@ export default function AddVariantForm({
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-      >
+      <button onClick={() => setOpen(true)} className={buttonClasses("secondary")}>
         + Add size
       </button>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-lg border border-zinc-200 bg-white p-4"
-    >
+    <Card as="form" onSubmit={handleSubmit}>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-zinc-900">
           Add a size variant
@@ -130,13 +126,9 @@ export default function AddVariantForm({
 
       {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-      >
+      <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Creating…" : "Create & open editor"}
-      </button>
-    </form>
+      </Button>
+    </Card>
   );
 }

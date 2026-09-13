@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import * as fabric from "fabric";
 import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "@/lib/google-fonts";
 import { useContainerScale } from "@/lib/use-container-scale";
+import Card from "@/components/ui/card";
+import Button from "@/components/ui/button";
 
 interface CanvasField {
   fieldKey: string;
@@ -441,14 +443,12 @@ export default function TemplateEditor({
             </button>
           </div>
           {dirty && (
-            <button
-              onClick={revertToLastSaved}
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-            >
+            <Button variant="secondary" onClick={revertToLastSaved}>
               Revert
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               if (
                 dirty &&
@@ -460,17 +460,12 @@ export default function TemplateEditor({
               }
               router.push(`/app/templates/${templateId}`);
             }}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
           >
             Back
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-          >
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -494,7 +489,7 @@ export default function TemplateEditor({
           </div>
         </div>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+        <Card>
           {!inspector ? (
             <p className="text-sm text-zinc-500">
               Select a field on the canvas to edit it.
@@ -616,7 +611,7 @@ export default function TemplateEditor({
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
