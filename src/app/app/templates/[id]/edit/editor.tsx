@@ -58,12 +58,14 @@ export default function TemplateEditor({
   templateId,
   templateName,
   variantId,
+  variantLabel,
   canvasJson,
   editableFieldKeys,
 }: {
   templateId: string;
   templateName: string;
   variantId: string;
+  variantLabel: string;
   canvasJson: unknown;
   editableFieldKeys: string[];
 }) {
@@ -272,7 +274,10 @@ export default function TemplateEditor({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">
-            Editing: {templateName}
+            Editing: {templateName}{" "}
+            <span className="font-normal text-zinc-400">
+              — {variantLabel}
+            </span>
           </h1>
           <p className="text-sm text-zinc-500">
             Drag fields to reposition, resize by their corner handles. Click
