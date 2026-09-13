@@ -2,10 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
-import { loadGoogleFont } from "@/lib/google-fonts";
 import { useContainerScale } from "@/lib/use-container-scale";
+import {
+  loadBackgroundImage,
+  loadFieldFont,
+  createFieldMask,
+  createFieldText,
+} from "@/lib/canvas-fields";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
+import CanvasSurface from "@/components/canvas-surface";
 
 interface CanvasField {
   fieldKey: string;
@@ -105,85 +111,28 @@ export default function FillEditor({
     setBackgroundLoadFailed(false);
 
     async function setup() {
-      if (data.backgroundImageUrl) {
-        try {
-          const proxiedUrl = `/api/figma-image?url=${encodeURIComponent(
-            data.backgroundImageUrl,
-          )}`;
-          const img = await fabric.FabricImage.fromURL(proxiedUrl);
-          if (disposed) return;
-          img.set({
-            left: 0,
-            top: 0,
-            originX: "left",
-            originY: "top",
-            scaleX: (data.width * scale) / (img.width ?? data.width),
-            scaleY: (data.height * scale) / (img.height ?? data.height),
-            selectable: false,
-            evented: false,
-          });
-          canvas.add(img);
-          canvas.sendObjectToBack(img);
-          canvas.requestRenderAll();
-        } catch (err) {
-          console.error("Failed to load template background image", err);
-          if (!disposed) setBackgroundLoadFailed(true);
-        }
-      }
+      const backgroundOk = await loadBackgroundImage(
+        canvas,
+        data,
+        scale,
+        () => disposed,
+      );
+      if (disposed) return;
+      if (!backgroundOk) setBackgroundLoadFailed(true);
 
       for (const field of data.fields) {
         if (!editableSet.has(field.fieldKey)) continue;
 
-        loadGoogleFont(field.fontFamily);
-        try {
-          await document.fonts.load(
-            `${field.fontSize}px "${field.fontFamily}"`,
-          );
-        } catch {
-          // Fall back silently if the font can't be loaded as a web font.
-        }
+        await loadFieldFont(field);
         if (disposed) return;
 
-        const mask = new fabric.Rect({
-          left: field.x * scale,
-          top: field.y * scale,
-          originX: "left",
-          originY: "top",
-          width: field.width * scale,
-          height: field.height * scale,
-          fill: field.maskColor,
-          selectable: false,
-          evented: false,
-        });
-
-        const text = new fabric.Textbox(
+        const mask = createFieldMask(field, scale);
+        const text = createFieldText(
+          field,
+          scale,
           fieldValues[field.fieldKey] ?? field.defaultValue,
-          {
-            left: field.x * scale,
-            top: field.y * scale,
-            originX: "left",
-            originY: "top",
-            width: field.width * scale,
-            fontFamily: field.fontFamily,
-            fontSize: field.fontSize * scale,
-            fill: field.color,
-            textAlign: field.align as fabric.Textbox["textAlign"],
-            selectable: false,
-            evented: false,
-          },
+          { selectable: false, evented: false, clip: true },
         );
-
-        // Clip to the field's declared box so a longer-than-expected value
-        // can't visually bleed into whatever's positioned below it.
-        text.clipPath = new fabric.Rect({
-          left: field.x * scale,
-          top: field.y * scale,
-          width: field.width * scale,
-          height: field.height * scale,
-          originX: "left",
-          originY: "top",
-          absolutePositioned: true,
-        });
 
         textObjects.set(field.fieldKey, text);
         canvas.add(mask);
@@ -321,20 +270,11 @@ export default function FillEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(320px,34%)]">
-        <div>
-          {backgroundLoadFailed && (
-            <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Background image couldn&apos;t load — showing text layout only.
-              Exports made now won&apos;t include the template background.
-            </p>
-          )}
-          <div
-            ref={containerRef}
-            className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
-          >
-            <canvas ref={canvasElRef} />
-          </div>
-        </div>
+        <CanvasSurface
+          containerRef={containerRef}
+          canvasRef={canvasElRef}
+          backgroundLoadFailed={backgroundLoadFailed}
+        />
 
         <Card className="space-y-4 self-start">
           {variant.fields.length === 0 ? (

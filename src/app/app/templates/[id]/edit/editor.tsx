@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import * as fabric from "fabric";
 import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "@/lib/google-fonts";
 import { useContainerScale } from "@/lib/use-container-scale";
+import {
+  loadBackgroundImage,
+  loadFieldFont,
+  createFieldMask,
+  createFieldText,
+} from "@/lib/canvas-fields";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
+import CanvasSurface from "@/components/canvas-surface";
 
 interface CanvasField {
   fieldKey: string;
@@ -140,70 +147,23 @@ export default function TemplateEditor({
     let disposed = false;
 
     async function setup() {
-      if (data.backgroundImageUrl) {
-        try {
-          const proxiedUrl = `/api/figma-image?url=${encodeURIComponent(
-            data.backgroundImageUrl,
-          )}`;
-          const img = await fabric.FabricImage.fromURL(proxiedUrl);
-          if (disposed) return;
-          img.set({
-            left: 0,
-            top: 0,
-            originX: "left",
-            originY: "top",
-            scaleX: (data.width * scale) / (img.width ?? data.width),
-            scaleY: (data.height * scale) / (img.height ?? data.height),
-            selectable: false,
-            evented: false,
-          });
-          canvas.add(img);
-          canvas.sendObjectToBack(img);
-          canvas.requestRenderAll();
-        } catch (err) {
-          // Don't let a failed background image load block the text
-          // fields from rendering — fall back to the flat backgroundColor.
-          console.error("Failed to load template background image", err);
-          if (!disposed) setBackgroundLoadFailed(true);
-        }
-      }
+      const backgroundOk = await loadBackgroundImage(
+        canvas,
+        data,
+        scale,
+        () => disposed,
+      );
+      if (disposed) return;
+      if (!backgroundOk) setBackgroundLoadFailed(true);
 
       for (const field of data.fields) {
         if (!editableSet.has(field.fieldKey)) continue;
 
-        loadGoogleFont(field.fontFamily);
-        try {
-          await document.fonts.load(
-            `${field.fontSize}px "${field.fontFamily}"`,
-          );
-        } catch {
-          // Font may not be a loadable web font; fall back silently.
-        }
+        await loadFieldFont(field);
         if (disposed) return;
 
-        const mask = new fabric.Rect({
-          left: field.x * scale,
-          top: field.y * scale,
-          originX: "left",
-          originY: "top",
-          width: field.width * scale,
-          height: field.height * scale,
-          fill: field.maskColor,
-          selectable: false,
-          evented: false,
-        });
-
-        const text = new fabric.Textbox(field.defaultValue, {
-          left: field.x * scale,
-          top: field.y * scale,
-          originX: "left",
-          originY: "top",
-          width: field.width * scale,
-          fontFamily: field.fontFamily,
-          fontSize: field.fontSize * scale,
-          fill: field.color,
-          textAlign: field.align as fabric.Textbox["textAlign"],
-        });
+        const mask = createFieldMask(field, scale);
+        const text = createFieldText(field, scale, field.defaultValue);
         (text as fabric.Textbox & { fieldKey: string }).fieldKey =
           field.fieldKey;
 
@@ -474,20 +434,11 @@ export default function TemplateEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(280px,32%)]">
-        <div>
-          {backgroundLoadFailed && (
-            <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Background image couldn&apos;t load — showing text layout only.
-              Exports made now won&apos;t include the template background.
-            </p>
-          )}
-          <div
-            ref={containerRef}
-            className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
-          >
-            <canvas ref={canvasElRef} />
-          </div>
-        </div>
+        <CanvasSurface
+          containerRef={containerRef}
+          canvasRef={canvasElRef}
+          backgroundLoadFailed={backgroundLoadFailed}
+        />
 
         <Card>
           {!inspector ? (
