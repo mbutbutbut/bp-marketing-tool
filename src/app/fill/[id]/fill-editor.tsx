@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
 import { loadGoogleFont } from "@/lib/google-fonts";
+import { useContainerScale } from "@/lib/use-container-scale";
 
 interface CanvasField {
   fieldKey: string;
@@ -73,7 +74,10 @@ export default function FillEditor({
 
   const variant = variants.find((v) => v.id === selectedVariantId)!;
   const data = variant.canvasJson as CanvasJson;
-  const scale = Math.min(1, MAX_CANVAS_WIDTH / data.width);
+  const { containerRef, scale } = useContainerScale(
+    data.width,
+    MAX_CANVAS_WIDTH,
+  );
   const editableSet = new Set(variant.fields.map((f) => f.fieldKey));
 
   useEffect(() => {
@@ -174,7 +178,7 @@ export default function FillEditor({
       textObjects.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedVariantId]);
+  }, [selectedVariantId, scale]);
 
   function updateField(fieldKey: string, value: string) {
     setFieldValues((prev) => ({ ...prev, [fieldKey]: value }));
@@ -292,7 +296,10 @@ export default function FillEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_320px]">
-        <div className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4">
+        <div
+          ref={containerRef}
+          className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
+        >
           <canvas ref={canvasElRef} />
         </div>
 

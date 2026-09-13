@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import * as fabric from "fabric";
 import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "@/lib/google-fonts";
+import { useContainerScale } from "@/lib/use-container-scale";
 
 interface CanvasField {
   fieldKey: string;
@@ -83,7 +84,10 @@ export default function TemplateEditor({
 
   const data = canvasJson as CanvasJson;
   const editableSet = new Set(editableFieldKeys);
-  const scale = Math.min(1, MAX_CANVAS_WIDTH / data.width);
+  const { containerRef, scale } = useContainerScale(
+    data.width,
+    MAX_CANVAS_WIDTH,
+  );
 
   function inspectorFromPair(fieldKey: string, pair: FieldPair): InspectorState {
     return {
@@ -100,6 +104,7 @@ export default function TemplateEditor({
   useEffect(() => {
     if (!canvasElRef.current) return;
     const pairs = pairsRef.current;
+    setInspector(null);
 
     const canvas = new fabric.Canvas(canvasElRef.current, {
       width: data.width * scale,
@@ -220,7 +225,7 @@ export default function TemplateEditor({
       pairs.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [scale]);
 
   function mutateSelectedText(mutator: (text: fabric.Textbox) => void) {
     if (!inspector) return;
@@ -415,7 +420,10 @@ export default function TemplateEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px]">
-        <div className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4">
+        <div
+          ref={containerRef}
+          className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
+        >
           <canvas ref={canvasElRef} />
         </div>
 
