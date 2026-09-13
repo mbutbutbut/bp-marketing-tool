@@ -124,7 +124,7 @@ export default async function TemplateDetailPage({
                   isEditable: f.isEditable,
                 }))}
               />
-              <p className="mt-4 text-xs text-zinc-400">
+              <p className="mt-4 text-xs text-zinc-500">
                 Open the editor to move/resize fields, change fonts, or edit
                 the default text.
               </p>
@@ -184,7 +184,7 @@ export default async function TemplateDetailPage({
                     <span className="text-zinc-700">
                       {r.format} · {r.variant.label}
                     </span>
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-zinc-500">
                       {r.createdBy.name} ·{" "}
                       {new Date(r.createdAt).toLocaleString()}
                     </span>

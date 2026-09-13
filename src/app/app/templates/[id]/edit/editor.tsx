@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as fabric from "fabric";
 import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "@/lib/google-fonts";
 import { useContainerScale } from "@/lib/use-container-scale";
@@ -72,6 +72,7 @@ export default function TemplateEditor({
   canvasJson: unknown;
   editableFieldKeys: string[];
 }) {
+  const router = useRouter();
   const canvasElRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
   const pairsRef = useRef<Map<string, FieldPair>>(new Map());
@@ -81,6 +82,25 @@ export default function TemplateEditor({
   const [saved, setSaved] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+
+  function showExportMessage(message: string) {
+    setExportMessage(message);
+    setTimeout(() => setExportMessage(null), 3000);
+  }
+
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
 
   const data = canvasJson as CanvasJson;
   const editableSet = new Set(editableFieldKeys);
@@ -105,6 +125,8 @@ export default function TemplateEditor({
     if (!canvasElRef.current) return;
     const pairs = pairsRef.current;
     setInspector(null);
+    setBackgroundLoadFailed(false);
+    setDirty(false);
 
     const canvas = new fabric.Canvas(canvasElRef.current, {
       width: data.width * scale,
@@ -140,6 +162,7 @@ export default function TemplateEditor({
           // Don't let a failed background image load block the text
           // fields from rendering — fall back to the flat backgroundColor.
           console.error("Failed to load template background image", err);
+          if (!disposed) setBackgroundLoadFailed(true);
         }
       }
 
@@ -188,6 +211,7 @@ export default function TemplateEditor({
         text.on("modified", () => {
           syncMaskToText(text, mask);
           canvas.requestRenderAll();
+          setDirty(true);
         });
 
         pairs.set(field.fieldKey, { text, mask });
@@ -225,7 +249,7 @@ export default function TemplateEditor({
       pairs.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scale]);
+  }, [scale, resetKey]);
 
   function mutateSelectedText(mutator: (text: fabric.Textbox) => void) {
     if (!inspector) return;
@@ -235,6 +259,7 @@ export default function TemplateEditor({
     syncMaskToText(pair.text, pair.mask);
     fabricCanvasRef.current?.requestRenderAll();
     setInspector(inspectorFromPair(inspector.fieldKey, pair));
+    setDirty(true);
   }
 
   function mutateSelectedMask(color: string) {
@@ -244,6 +269,14 @@ export default function TemplateEditor({
     pair.mask.set({ fill: color });
     fabricCanvasRef.current?.requestRenderAll();
     setInspector(inspectorFromPair(inspector.fieldKey, pair));
+    setDirty(true);
+  }
+
+  function revertToLastSaved() {
+    if (dirty && !window.confirm("Discard unsaved changes and revert to the last saved version?")) {
+      return;
+    }
+    setResetKey((k) => k + 1);
   }
 
   async function handleSave() {
@@ -278,7 +311,10 @@ export default function TemplateEditor({
     });
 
     setSaving(false);
-    if (res.ok) setSaved(true);
+    if (res.ok) {
+      setSaved(true);
+      setDirty(false);
+    }
   }
 
   function triggerDownload(href: string, filename: string) {
@@ -305,6 +341,7 @@ export default function TemplateEditor({
       });
       triggerDownload(dataUrl, `${safeName()}.${format === "jpeg" ? "jpg" : "png"}`);
       setExportError(null);
+      showExportMessage(`${format === "jpeg" ? "JPG" : "PNG"} downloaded`);
       fetch("/api/renders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -351,6 +388,7 @@ export default function TemplateEditor({
       const url = URL.createObjectURL(blob);
       triggerDownload(url, `${safeName()}.pdf`);
       URL.revokeObjectURL(url);
+      showExportMessage("PDF downloaded");
     } catch (err) {
       console.error(err);
       setExportError("Couldn't generate a PDF for this design.");
@@ -365,7 +403,7 @@ export default function TemplateEditor({
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">
             Editing: {templateName}{" "}
-            <span className="font-normal text-zinc-400">
+            <span className="font-normal text-zinc-500">
               — {variantLabel}
             </span>
           </h1>
@@ -376,6 +414,9 @@ export default function TemplateEditor({
         </div>
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-green-600">Saved</span>}
+          {exportMessage && (
+            <span className="text-sm text-green-600">{exportMessage}</span>
+          )}
           <div className="flex items-center overflow-hidden rounded-md border border-zinc-300">
             <button
               onClick={() => exportImage("png")}
@@ -399,12 +440,30 @@ export default function TemplateEditor({
               {exporting ? "PDF…" : "PDF"}
             </button>
           </div>
-          <Link
-            href={`/app/templates/${templateId}`}
+          {dirty && (
+            <button
+              onClick={revertToLastSaved}
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              Revert
+            </button>
+          )}
+          <button
+            onClick={() => {
+              if (
+                dirty &&
+                !window.confirm(
+                  "You have unsaved changes. Leave without saving?",
+                )
+              ) {
+                return;
+              }
+              router.push(`/app/templates/${templateId}`);
+            }}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
           >
             Back
-          </Link>
+          </button>
           <button
             onClick={handleSave}
             disabled={saving}
@@ -420,11 +479,19 @@ export default function TemplateEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px]">
-        <div
-          ref={containerRef}
-          className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
-        >
-          <canvas ref={canvasElRef} />
+        <div>
+          {backgroundLoadFailed && (
+            <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Background image couldn&apos;t load — showing text layout only.
+              Exports made now won&apos;t include the template background.
+            </p>
+          )}
+          <div
+            ref={containerRef}
+            className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
+          >
+            <canvas ref={canvasElRef} />
+          </div>
         </div>
 
         <div className="rounded-lg border border-zinc-200 bg-white p-4">
@@ -519,7 +586,7 @@ export default function TemplateEditor({
                     onChange={(e) => mutateSelectedMask(e.target.value)}
                     className="h-8 w-full rounded-md border border-zinc-300"
                   />
-                  <p className="mt-1 text-[11px] text-zinc-400">
+                  <p className="mt-1 text-[11px] text-zinc-500">
                     Covers the original Figma text behind this field.
                   </p>
                 </div>

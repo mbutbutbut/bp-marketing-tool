@@ -77,7 +77,7 @@ export default function FieldList({
               Default: &quot;{field.defaultValue}&quot; · {field.fontFamily}{" "}
               {field.fontSize}px
             </p>
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-zinc-500">
               {field.isEditable
                 ? "Editable — content managers can change this."
                 : "Locked — stays part of the background, not shown to content managers."}

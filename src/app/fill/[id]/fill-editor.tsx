@@ -67,6 +67,13 @@ export default function FillEditor({
   );
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
+
+  function showExportMessage(message: string) {
+    setExportMessage(message);
+    setTimeout(() => setExportMessage(null), 3000);
+  }
 
   const canvasElRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
@@ -93,6 +100,7 @@ export default function FillEditor({
     fabricCanvasRef.current = canvas;
 
     let disposed = false;
+    setBackgroundLoadFailed(false);
 
     async function setup() {
       if (data.backgroundImageUrl) {
@@ -117,6 +125,7 @@ export default function FillEditor({
           canvas.requestRenderAll();
         } catch (err) {
           console.error("Failed to load template background image", err);
+          if (!disposed) setBackgroundLoadFailed(true);
         }
       }
 
@@ -216,6 +225,7 @@ export default function FillEditor({
         `${safeName()}.${format === "jpeg" ? "jpg" : "png"}`,
       );
       setExportError(null);
+      showExportMessage(`${format === "jpeg" ? "JPG" : "PNG"} downloaded`);
       fetch("/api/renders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,6 +268,7 @@ export default function FillEditor({
       const url = URL.createObjectURL(blob);
       triggerDownload(url, `${safeName()}.pdf`);
       URL.revokeObjectURL(url);
+      showExportMessage("PDF downloaded");
     } catch (err) {
       console.error(err);
       setExportError("Couldn't generate a PDF for this design.");
@@ -296,11 +307,19 @@ export default function FillEditor({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_320px]">
-        <div
-          ref={containerRef}
-          className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
-        >
-          <canvas ref={canvasElRef} />
+        <div>
+          {backgroundLoadFailed && (
+            <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Background image couldn&apos;t load — showing text layout only.
+              Exports made now won&apos;t include the template background.
+            </p>
+          )}
+          <div
+            ref={containerRef}
+            className="overflow-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4"
+          >
+            <canvas ref={canvasElRef} />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -354,6 +373,9 @@ export default function FillEditor({
                 {exporting === "pdf" ? "Generating PDF…" : "Download PDF"}
               </button>
             </div>
+            {exportMessage && (
+              <p className="mt-2 text-xs text-green-600">{exportMessage}</p>
+            )}
             {exportError && (
               <p className="mt-2 text-xs text-red-600">{exportError}</p>
             )}
