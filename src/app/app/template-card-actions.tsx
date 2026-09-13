@@ -45,8 +45,10 @@ export default function TemplateCardActions({
     if (res.ok) router.refresh();
   }
 
+  const isArchived = status === "ARCHIVED";
+
   return (
-    <div className="mt-3 flex gap-3 text-xs">
+    <div className="mt-3 flex items-center gap-3 text-xs">
       <button
         onClick={duplicate}
         disabled={loading !== null}
@@ -54,12 +56,17 @@ export default function TemplateCardActions({
       >
         {loading === "duplicate" ? "Duplicating…" : "Duplicate"}
       </button>
+      <span className="h-3 w-px bg-zinc-200" aria-hidden="true" />
       <button
         onClick={toggleArchive}
         disabled={loading !== null}
-        className="text-zinc-500 hover:text-zinc-900 disabled:opacity-50"
+        className={
+          isArchived
+            ? "text-zinc-500 hover:text-zinc-900 disabled:opacity-50"
+            : "text-red-600 hover:text-red-700 disabled:opacity-50"
+        }
       >
-        {status === "ARCHIVED"
+        {isArchived
           ? "Unarchive"
           : loading === "archive"
             ? "Archiving…"

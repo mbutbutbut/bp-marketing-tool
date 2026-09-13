@@ -84,6 +84,11 @@ export default function TemplateLibraryGrid({
                 bulkSetStatus(allSelectedArchived ? "DRAFT" : "ARCHIVED")
               }
               disabled={bulkLoading}
+              className={
+                allSelectedArchived
+                  ? undefined
+                  : "!border-red-300 !text-red-600 hover:!bg-red-50"
+              }
             >
               {bulkLoading
                 ? "Working…"
