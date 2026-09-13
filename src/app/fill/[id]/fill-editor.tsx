@@ -77,6 +77,7 @@ export default function FillEditor({
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
+  const [fontLoadFailed, setFontLoadFailed] = useState(false);
 
   function showExportMessage(message: string) {
     setExportMessage(message);
@@ -109,6 +110,7 @@ export default function FillEditor({
 
     let disposed = false;
     setBackgroundLoadFailed(false);
+    setFontLoadFailed(false);
 
     async function setup() {
       const backgroundOk = await loadBackgroundImage(
@@ -123,8 +125,9 @@ export default function FillEditor({
       for (const field of data.fields) {
         if (!editableSet.has(field.fieldKey)) continue;
 
-        await loadFieldFont(field);
-        if (disposed) return;
+        loadFieldFont(field, () => {
+          if (!disposed) setFontLoadFailed(true);
+        });
 
         const mask = createFieldMask(field, scale);
         const text = createFieldText(
@@ -269,11 +272,12 @@ export default function FillEditor({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(320px,34%)]">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_min(320px,34%)]">
         <CanvasSurface
           containerRef={containerRef}
           canvasRef={canvasElRef}
           backgroundLoadFailed={backgroundLoadFailed}
+          fontLoadFailed={fontLoadFailed}
         />
 
         <Card className="space-y-4 self-start">

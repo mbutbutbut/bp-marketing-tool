@@ -93,6 +93,7 @@ export default function TemplateEditor({
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
+  const [fontLoadFailed, setFontLoadFailed] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
@@ -135,6 +136,7 @@ export default function TemplateEditor({
     const pairs = pairsRef.current;
     setInspector(null);
     setBackgroundLoadFailed(false);
+    setFontLoadFailed(false);
     setDirty(false);
 
     const canvas = new fabric.Canvas(canvasElRef.current, {
@@ -159,8 +161,9 @@ export default function TemplateEditor({
       for (const field of data.fields) {
         if (!editableSet.has(field.fieldKey)) continue;
 
-        await loadFieldFont(field);
-        if (disposed) return;
+        loadFieldFont(field, () => {
+          if (!disposed) setFontLoadFailed(true);
+        });
 
         const mask = createFieldMask(field, scale);
         const text = createFieldText(field, scale, field.defaultValue);
@@ -433,11 +436,12 @@ export default function TemplateEditor({
         <p className="mb-4 -mt-2 text-sm text-red-600">{exportError}</p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_min(280px,32%)]">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_min(280px,32%)]">
         <CanvasSurface
           containerRef={containerRef}
           canvasRef={canvasElRef}
           backgroundLoadFailed={backgroundLoadFailed}
+          fontLoadFailed={fontLoadFailed}
         />
 
         <Card>

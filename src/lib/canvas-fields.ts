@@ -64,16 +64,27 @@ export async function loadBackgroundImage(
   }
 }
 
-/** Loads a field's font as a web font. Never throws — falls back silently. */
-export async function loadFieldFont(
+/**
+ * Kicks off loading a field's font as a web font. Fire-and-forget by
+ * design: a Google Fonts request can hang or fail slowly on a bad
+ * connection (observed: 10+ seconds to a connection reset), and field
+ * rendering must never wait on that — the field is created immediately
+ * by the caller with whatever font is available right now, exactly as
+ * before. `onFailed` is called whenever the load eventually fails
+ * (possibly well after the field already rendered with a fallback
+ * font), so the caller can surface a banner without blocking anything
+ * on it.
+ */
+export function loadFieldFont(
   field: Pick<CanvasField, "fontFamily" | "fontSize">,
-) {
-  loadGoogleFont(field.fontFamily);
-  try {
-    await document.fonts.load(`${field.fontSize}px "${field.fontFamily}"`);
-  } catch {
-    // Font may not be a loadable web font; fall back silently.
-  }
+  onFailed?: () => void,
+): void {
+  loadGoogleFont(field.fontFamily)
+    .then((ok) => {
+      if (!ok) throw new Error("stylesheet failed");
+      return document.fonts.load(`${field.fontSize}px "${field.fontFamily}"`);
+    })
+    .catch(() => onFailed?.());
 }
 
 export function createFieldMask(field: CanvasField, scale: number) {

@@ -11,10 +11,12 @@ export default function CanvasSurface({
   containerRef,
   canvasRef,
   backgroundLoadFailed,
+  fontLoadFailed,
 }: {
   containerRef: RefObject<HTMLDivElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   backgroundLoadFailed: boolean;
+  fontLoadFailed?: boolean;
 }) {
   return (
     <div>
@@ -22,6 +24,13 @@ export default function CanvasSurface({
         <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Background image couldn&apos;t load — showing text layout only.
           Exports made now won&apos;t include the template background.
+        </p>
+      )}
+      {fontLoadFailed && (
+        <p className="mb-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          At least one field&apos;s font couldn&apos;t load — showing a
+          fallback typeface. Exports made now won&apos;t match the
+          intended font.
         </p>
       )}
       <div
