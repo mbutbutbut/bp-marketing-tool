@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import TemplateCardActions from "./template-card-actions";
-import Card from "@/components/ui/card";
 import { buttonClasses } from "@/components/ui/button";
-import TemplatePreview, {
-  type PreviewCanvasJson,
-} from "@/components/template-preview";
+import TemplateLibraryGrid from "./template-library-grid";
+import type { PreviewCanvasJson } from "@/components/template-preview";
 import type { Prisma } from "@/generated/prisma/client";
 
 const STATUS_TABS = ["ALL", "DRAFT", "PUBLISHED", "ARCHIVED"] as const;
@@ -89,33 +86,18 @@ export default async function TemplatesPage({
             : "No templates yet. Import your first design from Figma to get started."}
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {templates.map((t) => (
-            <li key={t.id}>
-              <Card>
-                <Link href={`/app/templates/${t.id}`} className="block">
-                  <TemplatePreview
-                    canvasJson={
-                      (t.variants[0]?.canvasJson as unknown as PreviewCanvasJson) ??
-                      null
-                    }
-                    alt={t.name}
-                  />
-                  <p className="mt-3 font-medium text-zinc-900">{t.name}</p>
-                  <p className="text-xs uppercase text-zinc-500">
-                    {t.status}
-                    {t.eventType ? ` · ${t.eventType}` : ""}
-                  </p>
-                  <p className="mt-2 text-xs text-zinc-500">
-                    {t.variants.length} size variant
-                    {t.variants.length === 1 ? "" : "s"}
-                  </p>
-                </Link>
-                <TemplateCardActions templateId={t.id} status={t.status} />
-              </Card>
-            </li>
-          ))}
-        </ul>
+        <TemplateLibraryGrid
+          templates={templates.map((t) => ({
+            id: t.id,
+            name: t.name,
+            status: t.status,
+            eventType: t.eventType,
+            variantCount: t.variants.length,
+            canvasJson:
+              (t.variants[0]?.canvasJson as unknown as PreviewCanvasJson) ??
+              null,
+          }))}
+        />
       )}
     </div>
   );
