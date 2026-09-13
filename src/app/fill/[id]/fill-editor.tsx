@@ -212,6 +212,15 @@ export default function FillEditor({
         `${safeName()}.${format === "jpeg" ? "jpg" : "png"}`,
       );
       setExportError(null);
+      fetch("/api/renders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId,
+          variantId: variant.id,
+          format: format === "jpeg" ? "JPG" : "PNG",
+        }),
+      }).catch(() => {});
     } catch (err) {
       console.error(err);
       setExportError("Couldn't export an image for this design.");

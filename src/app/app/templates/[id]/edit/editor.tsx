@@ -300,6 +300,15 @@ export default function TemplateEditor({
       });
       triggerDownload(dataUrl, `${safeName()}.${format === "jpeg" ? "jpg" : "png"}`);
       setExportError(null);
+      fetch("/api/renders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId,
+          variantId,
+          format: format === "jpeg" ? "JPG" : "PNG",
+        }),
+      }).catch(() => {});
     } catch (err) {
       console.error(err);
       setExportError(

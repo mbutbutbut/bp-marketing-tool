@@ -38,6 +38,11 @@ export default async function TemplateDetailPage({
     include: {
       variants: { orderBy: { createdAt: "asc" } },
       fields: true,
+      renders: {
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: { createdBy: true, variant: true },
+      },
     },
   });
 
@@ -158,6 +163,35 @@ export default async function TemplateDetailPage({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="mt-10">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-900">
+              Recent exports
+            </h2>
+            {template.renders.length === 0 ? (
+              <p className="text-sm text-zinc-500">
+                No exports yet — they&apos;ll show up here once someone
+                downloads a PNG, JPG, or PDF from the editor or fill page.
+              </p>
+            ) : (
+              <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-white">
+                {template.renders.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center justify-between px-4 py-2 text-sm"
+                  >
+                    <span className="text-zinc-700">
+                      {r.format} · {r.variant.label}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      {r.createdBy.name} ·{" "}
+                      {new Date(r.createdAt).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </>
       )}
