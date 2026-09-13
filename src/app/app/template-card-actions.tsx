@@ -27,6 +27,14 @@ export default function TemplateCardActions({
 
   async function toggleArchive() {
     const nextStatus = status === "ARCHIVED" ? "DRAFT" : "ARCHIVED";
+    if (
+      nextStatus === "ARCHIVED" &&
+      !window.confirm(
+        "Archive this template? It will no longer be visible to content managers.",
+      )
+    ) {
+      return;
+    }
     setLoading("archive");
     const res = await fetch(`/api/templates/${templateId}`, {
       method: "PATCH",

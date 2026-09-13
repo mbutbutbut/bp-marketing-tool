@@ -399,8 +399,8 @@ export default function TemplateEditor({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-lg font-semibold text-zinc-900">
             Editing: {templateName}{" "}
             <span className="font-normal text-zinc-500">
@@ -412,7 +412,7 @@ export default function TemplateEditor({
             a field to edit its text and style on the right.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {saved && <span className="text-sm text-green-600">Saved</span>}
           {exportMessage && (
             <span className="text-sm text-green-600">{exportMessage}</span>
