@@ -11,7 +11,7 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isOwner = req.auth?.user?.role === "OWNER";
 
-  if (pathname.startsWith("/login")) {
+  if (pathname.startsWith("/login") || pathname.startsWith("/api/admin/")) {
     return NextResponse.next();
   }
 
