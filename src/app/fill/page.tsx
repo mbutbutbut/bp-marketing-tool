@@ -28,6 +28,7 @@ export default async function FillPage() {
             <li key={t.id}>
               <Card>
                 <TemplatePreview
+                  id={t.id}
                   canvasJson={
                     (t.variants[0]?.canvasJson as unknown as PreviewCanvasJson) ??
                     null

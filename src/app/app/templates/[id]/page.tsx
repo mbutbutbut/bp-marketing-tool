@@ -6,6 +6,9 @@ import AddVariantForm from "./add-variant-form";
 import PublishToggle from "./publish-toggle";
 import Card from "@/components/ui/card";
 import { buttonClasses } from "@/components/ui/button";
+import TemplatePreview, {
+  type PreviewCanvasJson,
+} from "@/components/template-preview";
 
 interface CanvasJsonField {
   fieldKey: string;
@@ -20,11 +23,7 @@ interface CanvasJsonField {
   defaultValue: string;
 }
 
-interface CanvasJson {
-  backgroundImageUrl: string | null;
-  backgroundFill: string | null;
-  width: number;
-  height: number;
+interface CanvasJson extends PreviewCanvasJson {
   fields: CanvasJsonField[];
 }
 
@@ -91,22 +90,11 @@ export default async function TemplateDetailPage({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div
-              className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white"
-              style={{
-                aspectRatio: `${canvasJson.width} / ${canvasJson.height}`,
-                backgroundColor: canvasJson.backgroundFill ?? "#f4f4f5",
-              }}
-            >
-              {canvasJson.backgroundImageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={canvasJson.backgroundImageUrl}
-                  alt={template.name}
-                  className="absolute inset-0 h-full w-full object-contain"
-                />
-              )}
-            </div>
+            <TemplatePreview
+              id={template.id}
+              canvasJson={canvasJson}
+              alt={template.name}
+            />
 
             <div>
               <h2 className="mb-1 text-sm font-semibold text-zinc-900">

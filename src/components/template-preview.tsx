@@ -28,9 +28,11 @@ export interface PreviewCanvasJson {
  * HTML overlay so it scales correctly at any card width with no JS.
  */
 export default function TemplatePreview({
+  id,
   canvasJson,
   alt,
 }: {
+  id: string;
   canvasJson: PreviewCanvasJson | null;
   alt: string;
 }) {
@@ -66,7 +68,7 @@ export default function TemplatePreview({
           />
         )}
         {fields?.map((field, i) => (
-          <clipPath key={`clip-${i}`} id={`preview-field-clip-${i}`}>
+          <clipPath key={`clip-${i}`} id={`preview-field-clip-${id}-${i}`}>
             <rect
               x={field.x}
               y={field.y}
@@ -108,7 +110,7 @@ export default function TemplatePreview({
                   ? "end"
                   : "start"
             }
-            clipPath={`url(#preview-field-clip-${i})`}
+            clipPath={`url(#preview-field-clip-${id}-${i})`}
           >
             {field.defaultValue}
           </text>

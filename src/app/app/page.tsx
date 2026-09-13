@@ -47,14 +47,18 @@ export default async function TemplatesPage({
         </Link>
       </div>
 
-      <form className="mb-4 flex items-center gap-3" action="/app" method="get">
+      <form
+        className="mb-4 flex flex-wrap items-center gap-3"
+        action="/app"
+        method="get"
+      >
         {status && <input type="hidden" name="status" value={status} />}
         <input
           type="search"
           name="q"
           defaultValue={q ?? ""}
           placeholder="Search by name or event type…"
-          className="w-full max-w-xs rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
+          className="w-full min-w-[180px] flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm sm:max-w-xs"
         />
         <div className="flex gap-1">
           {STATUS_TABS.map((tab) => (

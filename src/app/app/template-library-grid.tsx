@@ -114,7 +114,11 @@ export default function TemplateLibraryGrid({
                 className="absolute right-3 top-3 z-10 h-4 w-4 rounded border-zinc-300"
               />
               <Link href={`/app/templates/${t.id}`} className="block">
-                <TemplatePreview canvasJson={t.canvasJson} alt={t.name} />
+                <TemplatePreview
+                  id={t.id}
+                  canvasJson={t.canvasJson}
+                  alt={t.name}
+                />
                 <p className="mt-3 font-medium text-zinc-900">{t.name}</p>
                 <p className="text-xs uppercase text-zinc-500">
                   {t.status}
