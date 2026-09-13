@@ -104,6 +104,7 @@ model TemplateField {
   fieldKey      String
   label         String
   type          String            @default("text") // "text" | "image"
+  isEditable    Boolean           @default(true)
   defaultValue  String?
   fontFamily    String?
   fontSize      Int?

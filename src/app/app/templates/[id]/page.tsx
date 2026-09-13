@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import FieldList from "./field-list";
 
 interface CanvasJsonField {
   fieldKey: string;
@@ -49,7 +50,7 @@ export default async function TemplateDetailPage({
         </h1>
         <p className="text-sm text-zinc-500">
           {canvasJson
-            ? `${canvasJson.width}×${canvasJson.height}px · ${template.fields.length} editable field${template.fields.length === 1 ? "" : "s"}`
+            ? `${canvasJson.width}×${canvasJson.height}px · ${template.fields.filter((f) => f.isEditable).length} editable field${template.fields.filter((f) => f.isEditable).length === 1 ? "" : "s"}`
             : "No size variant yet."}
         </p>
       </div>
@@ -78,32 +79,23 @@ export default async function TemplateDetailPage({
           </div>
 
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-zinc-900">
+            <h2 className="mb-1 text-sm font-semibold text-zinc-900">
               Fields found in this frame
             </h2>
-            {template.fields.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                No text layers were found in this frame — this template will
-                only support swapping the background image.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {template.fields.map((field) => (
-                  <li
-                    key={field.id}
-                    className="rounded-md border border-zinc-200 bg-white p-3"
-                  >
-                    <p className="text-sm font-medium text-zinc-900">
-                      {field.label}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      Default: &quot;{field.defaultValue}&quot; ·{" "}
-                      {field.fontFamily} {field.fontSize}px
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="mb-3 text-xs text-zinc-500">
+              Uncheck anything that shouldn&apos;t change per event (like a
+              logo) — content managers will only see checked fields.
+            </p>
+            <FieldList
+              initialFields={template.fields.map((f) => ({
+                id: f.id,
+                label: f.label,
+                defaultValue: f.defaultValue,
+                fontFamily: f.fontFamily,
+                fontSize: f.fontSize,
+                isEditable: f.isEditable,
+              }))}
+            />
             <p className="mt-4 text-xs text-zinc-400">
               This is a preview of what came in from Figma. Full editing
               (moving/resizing fields, adjusting fonts, adding size variants)
