@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import * as fabric from "fabric";
-import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "./google-fonts";
+import { CURATED_GOOGLE_FONTS, loadGoogleFont } from "@/lib/google-fonts";
 
 interface CanvasField {
   fieldKey: string;

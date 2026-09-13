@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import FieldList from "./field-list";
 import AddVariantForm from "./add-variant-form";
+import PublishToggle from "./publish-toggle";
 
 interface CanvasJsonField {
   fieldKey: string;
@@ -63,14 +64,17 @@ export default async function TemplateDetailPage({
               : "No size variant yet."}
           </p>
         </div>
-        {canvasJson && variant && (
-          <Link
-            href={`/app/templates/${template.id}/edit/${variant.id}`}
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-          >
-            Open editor
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          <PublishToggle templateId={template.id} initialStatus={template.status} />
+          {canvasJson && variant && (
+            <Link
+              href={`/app/templates/${template.id}/edit/${variant.id}`}
+              className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              Open editor
+            </Link>
+          )}
+        </div>
       </div>
 
       {!canvasJson ? (
