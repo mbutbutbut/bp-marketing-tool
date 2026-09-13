@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import TemplateCardActions from "./template-card-actions";
 import Card from "@/components/ui/card";
 import { buttonClasses } from "@/components/ui/button";
+import TemplatePreview, {
+  type PreviewCanvasJson,
+} from "@/components/template-preview";
 import type { Prisma } from "@/generated/prisma/client";
 
 const STATUS_TABS = ["ALL", "DRAFT", "PUBLISHED", "ARCHIVED"] as const;
@@ -91,7 +94,14 @@ export default async function TemplatesPage({
             <li key={t.id}>
               <Card>
                 <Link href={`/app/templates/${t.id}`} className="block">
-                  <p className="font-medium text-zinc-900">{t.name}</p>
+                  <TemplatePreview
+                    canvasJson={
+                      (t.variants[0]?.canvasJson as unknown as PreviewCanvasJson) ??
+                      null
+                    }
+                    alt={t.name}
+                  />
+                  <p className="mt-3 font-medium text-zinc-900">{t.name}</p>
                   <p className="text-xs uppercase text-zinc-500">
                     {t.status}
                     {t.eventType ? ` · ${t.eventType}` : ""}

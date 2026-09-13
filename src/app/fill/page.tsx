@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Card from "@/components/ui/card";
+import TemplatePreview, {
+  type PreviewCanvasJson,
+} from "@/components/template-preview";
 
 export default async function FillPage() {
   const templates = await prisma.template.findMany({
@@ -24,7 +27,14 @@ export default async function FillPage() {
           {templates.map((t) => (
             <li key={t.id}>
               <Card>
-                <p className="font-medium text-zinc-900">{t.name}</p>
+                <TemplatePreview
+                  canvasJson={
+                    (t.variants[0]?.canvasJson as unknown as PreviewCanvasJson) ??
+                    null
+                  }
+                  alt={t.name}
+                />
+                <p className="mt-3 font-medium text-zinc-900">{t.name}</p>
                 <p className="mt-2 text-xs text-zinc-500">
                   {t.variants.length} size option
                   {t.variants.length === 1 ? "" : "s"}
