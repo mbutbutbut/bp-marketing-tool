@@ -1,12 +1,33 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Reads an env var with a fallback, treating an empty string the same as
+ * "unset". Vercel can auto-sync `.env.example` variable NAMES with empty
+ * values, so `??` (which only falls back on null/undefined) previously let
+ * an empty string through and created a user with `email: ""`.
+ */
+export function resolveSeedEnv(value: string | undefined, fallback: string) {
+  return value || fallback;
+}
+
 export async function seedUsers() {
-  const ownerEmail = process.env.SEED_OWNER_EMAIL || "owner@boulderparc.com";
-  const ownerPassword = process.env.SEED_OWNER_PASSWORD || "change-me-owner";
-  const editorEmail = process.env.SEED_EDITOR_EMAIL || "editor@boulderparc.com";
-  const editorPassword =
-    process.env.SEED_EDITOR_PASSWORD || "change-me-editor";
+  const ownerEmail = resolveSeedEnv(
+    process.env.SEED_OWNER_EMAIL,
+    "owner@boulderparc.com",
+  );
+  const ownerPassword = resolveSeedEnv(
+    process.env.SEED_OWNER_PASSWORD,
+    "change-me-owner",
+  );
+  const editorEmail = resolveSeedEnv(
+    process.env.SEED_EDITOR_EMAIL,
+    "editor@boulderparc.com",
+  );
+  const editorPassword = resolveSeedEnv(
+    process.env.SEED_EDITOR_PASSWORD,
+    "change-me-editor",
+  );
 
   // Clean up any user created by an earlier bug where empty env vars
   // (rather than missing ones) bypassed the fallback defaults above.

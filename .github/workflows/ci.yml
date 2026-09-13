@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: devpassword
+          POSTGRES_DB: bp_marketing_tool
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:devpassword@localhost:5432/bp_marketing_tool?schema=public
+      AUTH_SECRET: ci-only-secret-not-used-in-production
+      SEED_OWNER_EMAIL: owner@boulderparc.com
+      SEED_OWNER_PASSWORD: change-me-owner
+      SEED_EDITOR_EMAIL: editor@boulderparc.com
+      SEED_EDITOR_PASSWORD: change-me-editor
+      FIGMA_ACCESS_TOKEN: ""
+      BLOB_READ_WRITE_TOKEN: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Runs the exact command Vercel runs on deploy, against a disposable
+      # DB, so a broken migration or an ungenerated Prisma client fails
+      # here instead of in production.
+      - name: Build (Vercel build command)
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end smoke + regression tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

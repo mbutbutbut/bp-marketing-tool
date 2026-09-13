@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { OUTPUT_PRESETS } from "@/lib/output-sizes";
+import { computeCanvasScale, scaleField } from "@/lib/scale-canvas";
 import type { Prisma } from "@/generated/prisma/client";
 
 interface CanvasField {
@@ -84,18 +85,17 @@ export async function POST(
   }
 
   const sourceCanvas = source.canvasJson as unknown as CanvasJson;
-  const scaleX = widthPx / sourceCanvas.width;
-  const scaleY = heightPx / sourceCanvas.height;
-  const fontScale = Math.sqrt(scaleX * scaleY);
+  const scale = computeCanvasScale(
+    sourceCanvas.width,
+    sourceCanvas.height,
+    widthPx,
+    heightPx,
+  );
+  const { fontScale } = scale;
 
-  const newFields: CanvasField[] = sourceCanvas.fields.map((f) => ({
-    ...f,
-    x: f.x * scaleX,
-    y: f.y * scaleY,
-    width: f.width * scaleX,
-    height: f.height * scaleY,
-    fontSize: f.fontSize * fontScale,
-  }));
+  const newFields: CanvasField[] = sourceCanvas.fields.map((f) =>
+    scaleField(f, scale),
+  );
 
   const newCanvasJson: CanvasJson = {
     ...sourceCanvas,
